@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 5px; font-size: 12px; color: #333; font-weight: 300; }
+        body, h3, p { margin: 0; padding: 0; }
+        .section { margin-bottom: 20px; }
+        .section-header { font-size: 14px; font-weight: bold; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; margin-bottom: 12px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; align-items: center; }
+        .input-grid-full { grid-column: 1 / 3; }
+        label { font-weight: normal; }
+        input[type="number"], select { width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 2px; box-sizing: border-box; font-size: 12px; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; }
+        input[type="checkbox"] { width: auto; }
+        .hidden { display: none; }
+        .add-labor-btn { background: none; border: none; color: #1a73e8; cursor: pointer; padding: 5px 0; font-size: 12px; font-weight: bold; }
+        .labor-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 8px;}
+        
+        #error-message {
+            color: #d93025;
+            font-weight: bold;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            min-height: 16px;
+        }
+
+        .summary-container {
+            padding: 12px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            border-radius: 2px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-label { font-size: 11px; font-weight: normal; color: #5f6368; margin-bottom: 2px; }
+        .summary-value { font-weight: bold; font-size: 14px; }
+        .summary-input { width: 80px; text-align: right; padding: 4px; font-weight: bold; }
+        .btn-primary {
+            border: none;
+            border-radius: 2px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            background-color: #4285F4;
+            color: white;
+            width: 100%;
+            grid-column: 1 / 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <div class="input-grid">
+            <label for="material" class="input-grid-full">Material</label>
+            <select id="material" class="input-grid-full"></select>
+            <div id="error-message" class="input-grid-full"></div>
+            <label for="qty">Qty</label>
+            <div></div>
+            <input id="qty" type="number" min="1" placeholder="1">
+            <div></div>
+            <label for="width">Artwork Width (in)</label>
+            <label for="height">Artwork Height (in)</label>
+            <input id="width" type="number" placeholder="0">
+            <input id="height" type="number" placeholder="0">
+            <div class="checkbox-group input-grid-full">
+                <input type="checkbox" id="complex-shape">
+                <label for="complex-shape">Complex Shape</label>
+            </div>
+            <div class="checkbox-group input-grid-full">
+                <input type="checkbox" id="double-sided">
+                <label for="double-sided">Double Sided</label>
+            </div>
+            <div class="checkbox-group input-grid-full">
+                <input type="checkbox" id="lamination">
+                <label for="lamination">Lamination</label>
+            </div>
+        </div>
+    </div>
+
+    <button id="toggle-labor-btn" class="add-labor-btn">+ Additional Labor</button>
+    <div id="additional-labor-section" class="section hidden">
+        <h3 class="section-header">Additional Labor</h3>
+        <div class="labor-row"><span>Design</span><input type="number" id="design-time" placeholder="0"><select id="design-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
+        <div class="labor-row"><span>Weeding</span><input type="number" id="weeding-time" placeholder="0"><select id="weeding-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
+        <div class="labor-row"><span>Masking</span><input type="number" id="masking-time" placeholder="0"><select id="masking-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
+        <div class="labor-row"><span>Finishing</span><input type="number" id="finishing-time" placeholder="0"><select id="finishing-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
+    </div>
+
+    <div class="summary-container">
+        <div class="summary-item">
+            <span class="summary-label">Total Cost</span>
+            <span id="total-cost" class="summary-value">$0.00</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Margin %</span>
+            <input id="margin" type="number" value="50" class="summary-input">
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Total Price</span>
+            <span id="total-price" class="summary-value">$0.00</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Total Unit Price</span>
+            <span id="unit-price" class="summary-value">$0.00</span>
+        </div>
+        <button id="add-to-project-btn" class="btn-primary">Add to Project</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const materialSelect = document.getElementById('material');
+        
+        // This is the key fix: A direct event listener on the material dropdown
+        materialSelect.addEventListener('change', calculateEstimate);
+
+        google.script.run.withSuccessHandler(materials => {
+            if (materials && materials.length > 0) {
+                 let defaultOption = document.createElement('option');
+                defaultOption.textContent = 'Select a material...';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                materialSelect.appendChild(defaultOption);
+                materials.forEach(material => {
+                    let option = document.createElement('option');
+                    option.value = material[0];
+                    option.textContent = material[0];
+                    option.dataset.type = material[1];
+                    option.dataset.width = material[2];
+                    option.dataset.height = material[3];
+                    option.dataset.sheetCost = material[4];
+                    option.dataset.linFtCost = material[5];
+                    materialSelect.appendChild(option);
+                });
+            }
+            calculateEstimate();
+        }).withFailureHandler(err => alert("Failed to load materials: " + err.message)).getMaterialInventory();
+
+        document.body.addEventListener('input', calculateEstimate);
+        document.body.addEventListener('change', calculateEstimate);
+        document.getElementById('toggle-labor-btn').addEventListener('click', () => document.getElementById('additional-labor-section').classList.toggle('hidden'));
+        document.getElementById('add-to-project-btn').addEventListener('click', sendDataToSheet);
+    });
+
+    function getInputValue(id) {
+        const el = document.getElementById(id);
+        if (el.value === '') return parseFloat(el.placeholder) || 0;
+        return parseFloat(el.value) || 0;
+    }
+    function isChecked(id) { return document.getElementById(id).checked; }
+    function formatCurrency(value) { return isNaN(value) ? '$0.00' : value.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
+    
+    function resetCosts() {
+        document.getElementById('total-cost').textContent = formatCurrency(0);
+        document.getElementById('total-price').textContent = formatCurrency(0);
+        document.getElementById('unit-price').textContent = formatCurrency(0);
+    }
+
+    function calculateEstimate() {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = '';
+
+        const qty = getInputValue('qty');
+        const artWidth = getInputValue('width');
+        const artHeight = getInputValue('height');
+        const isDoubleSided = isChecked('double-sided');
+        const isComplex = isChecked('complex-shape');
+        const bleed = 0.25;
+        const spacing = 0.25;
+        const artWidthWithBleed = artWidth + bleed;
+        const artHeightWithBleed = artHeight + bleed;
+
+        let materialCost = 0;
+        const selectedMaterial = document.getElementById('material').selectedOptions[0];
+        
+        if (selectedMaterial && !selectedMaterial.disabled) {
+            const matType = selectedMaterial.dataset.type;
+            if (matType === 'Roll') {
+                const rollWidth = parseFloat(selectedMaterial.dataset.width);
+                if (artWidthWithBleed > rollWidth && artHeightWithBleed > rollWidth) {
+                    errorDiv.textContent = 'Artwork is wider than the selected roll.';
+                    resetCosts();
+                    return;
+                }
+            } else if (matType === 'Sheet') {
+                const sheetWidth = parseFloat(selectedMaterial.dataset.width);
+                const sheetHeight = parseFloat(selectedMaterial.dataset.height);
+                const artFitsPortrait = (artWidthWithBleed <= sheetWidth && artHeightWithBleed <= sheetHeight);
+                const artFitsLandscape = (artWidthWithBleed <= sheetHeight && artHeightWithBleed <= sheetWidth);
+                if (!artFitsPortrait && !artFitsLandscape) {
+                    errorDiv.textContent = 'Artwork is larger than the selected sheet.';
+                    resetCosts();
+                    return;
+                }
+            }
+        }
+
+        const singlePieceSqFt = (artWidthWithBleed * artHeightWithBleed) / 144;
+        
+        let totalArtworkSqFt = singlePieceSqFt * qty;
+        if (isDoubleSided) totalArtworkSqFt *= 1.45;
+        const totalArtworkPerimeter = (artWidthWithBleed * artHeightWithBleed) * 2 * qty;
+
+        const printTimeHours = (totalArtworkSqFt / 0.83) / 60;
+        let cutTimeHours = (totalArtworkPerimeter / 120) / 60;
+        if (isComplex) cutTimeHours *= 1.5;
+        const ripTimeHours = (totalArtworkSqFt / 20.52) / 60;
+        const printComputeTimeHours = (totalArtworkSqFt / 6.2) / 60;
+        
+        let designTimeInHours = getInputValue('design-time');
+        if (document.getElementById('design-unit').value === 'minutes') designTimeInHours /= 60;
+        
+        let weedingTime = getInputValue('weeding-time');
+        if (document.getElementById('weeding-unit').value === 'minutes') weedingTime /= 60;
+        let maskingTime = getInputValue('masking-time');
+        if (document.getElementById('masking-unit').value === 'minutes') maskingTime /= 60;
+        let finishingTime = getInputValue('finishing-time');
+        if (document.getElementById('finishing-unit').value === 'minutes') finishingTime /= 60;
+        
+        const manualLaborTimeHours = weedingTime + maskingTime + finishingTime;
+        
+        const totalProjectRunTimeHours = printTimeHours + cutTimeHours + ripTimeHours + printComputeTimeHours;
+        
+        if (selectedMaterial && !selectedMaterial.disabled) {
+            const matType = selectedMaterial.dataset.type;
+            if (matType === 'Roll') {
+                const rollWidth = parseFloat(selectedMaterial.dataset.width);
+                const linFtCost = parseFloat(selectedMaterial.dataset.linFtCost);
+                if (rollWidth > 0 && artWidthWithBleed > 0 && artHeightWithBleed > 0) {
+                    const colsPortrait = Math.floor((rollWidth + spacing) / (artWidthWithBleed + spacing));
+                    const colsLandscape = Math.floor((rollWidth + spacing) / (artHeightWithBleed + spacing));
+                    let numColumns = Math.max(colsPortrait, colsLandscape, 1);
+                    let rowHeight = artHeightWithBleed;
+                    if (colsLandscape > colsPortrait) rowHeight = artWidthWithBleed;
+                    const numRows = Math.ceil(qty / numColumns);
+                    const totalLinearInches = (numRows * rowHeight) + ((numRows - 1) * spacing);
+                    const totalLinearFeet = totalLinearInches / 12;
+                    materialCost = totalLinearFeet * linFtCost;
+                }
+            } else if (matType === 'Sheet') {
+                const sheetWidth = parseFloat(selectedMaterial.dataset.width);
+                const sheetHeight = parseFloat(selectedMaterial.dataset.height);
+                const sheetCost = parseFloat(selectedMaterial.dataset.sheetCost);
+                const artFitsPortrait = (artWidthWithBleed <= sheetWidth && artHeightWithBleed <= sheetHeight);
+                const artFitsLandscape = (artWidthWithBleed <= sheetHeight && artHeightWithBleed <= sheetWidth);
+                const perSheet1 = artFitsPortrait ? Math.floor((sheetWidth + spacing) / (artWidthWithBleed + spacing)) * Math.floor((sheetHeight + spacing) / (artHeightWithBleed + spacing)) : 0;
+                const perSheet2 = artFitsLandscape ? Math.floor((sheetWidth + spacing) / (artHeightWithBleed + spacing)) * Math.floor((sheetHeight + spacing) / (artWidthWithBleed + spacing)) : 0;
+                const piecesPerSheet = Math.max(perSheet1, perSheet2, 1);
+                const totalSheets = Math.ceil(qty / piecesPerSheet);
+                let calculatedMaterialCost = totalSheets * sheetCost;
+                const halfSheetCost = sheetCost * 0.5;
+                materialCost = Math.max(calculatedMaterialCost, halfSheetCost);
+            }
+        }
+        const inkCost = totalArtworkSqFt * 0.165;
+        const cuttingCost = cutTimeHours * 25.00;
+        const setupCost = singlePieceSqFt * 0.15 * 60.00;
+        const equipmentCost = totalProjectRunTimeHours * 4.95;
+        const operatorCost = totalProjectRunTimeHours * 28.00;
+        
+        const designCost = designTimeInHours * 60.00;
+        const laborCost = manualLaborTimeHours * 28.00;
+
+        const totalCost = materialCost + inkCost + cuttingCost + setupCost + equipmentCost + operatorCost + designCost + laborCost;
+        const margin = getInputValue('margin') / 100;
+        let totalPrice = totalCost;
+        if (margin < 1 && margin >= 0) totalPrice = totalCost / (1 - margin);
+        const unitPrice = (qty > 0) ? totalPrice / qty : 0;
+        
+        document.getElementById('total-cost').textContent = formatCurrency(totalCost);
+        document.getElementById('total-price').textContent = formatCurrency(totalPrice);
+        document.getElementById('unit-price').textContent = formatCurrency(unitPrice);
+    }
+    function sendDataToSheet() {
+        const qty = getInputValue('qty');
+        const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(/[^0-9.-]+/g,""));
+        const unitPrice = (qty > 0) ? totalPrice / qty : 0;
+        if (isNaN(qty) || isNaN(unitPrice) || isNaN(totalPrice) || qty === 0) {
+            alert("Please enter a valid quantity before adding to the project.");
+            return;
+        }
+        const button = document.getElementById('add-to-project-btn');
+        button.textContent = "Adding...";
+        button.disabled = true;
+        google.script.run.withSuccessHandler(() => {
+            button.textContent = "Add to Project";
+            button.disabled = false;
+        }).withFailureHandler(err => {
+            alert("Error: " + err.message);
+            button.textContent = "Add to Project";
+            button.disabled = false;
+        }).addEstimateToProject(qty, unitPrice, totalPrice);
+    }
+</script>
+</body>
+</html>
