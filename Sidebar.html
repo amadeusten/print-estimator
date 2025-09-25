@@ -2,299 +2,340 @@
 <html>
 <head>
     <base target="_top">
-    <style>
-        body { font-family: Arial, sans-serif; padding: 5px; font-size: 12px; color: #333; font-weight: 300; }
-        body, h3, p { margin: 0; padding: 0; }
-        .section { margin-bottom: 20px; }
-        .section-header { font-size: 14px; font-weight: bold; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; margin-bottom: 12px; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; align-items: center; }
-        .input-grid-full { grid-column: 1 / 3; }
-        label { font-weight: normal; }
-        input[type="number"], select { width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 2px; box-sizing: border-box; font-size: 12px; }
-        .checkbox-group { display: flex; align-items: center; gap: 8px; }
-        input[type="checkbox"] { width: auto; }
-        .hidden { display: none; }
-        .add-labor-btn { background: none; border: none; color: #1a73e8; cursor: pointer; padding: 5px 0; font-size: 12px; font-weight: bold; }
-        .labor-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; margin-bottom: 8px;}
-        
-        #error-message {
-            color: #d93025;
-            font-weight: bold;
-            margin-top: -10px;
-            margin-bottom: 10px;
-            min-height: 16px;
-        }
-
-        .summary-container {
-            padding: 12px;
-            border-top: 1px solid #e0e0e0;
-            background-color: #f8f9fa;
-            border-radius: 2px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            align-items: end;
-        }
-        .summary-item { display: flex; flex-direction: column; }
-        .summary-label { font-size: 11px; font-weight: normal; color: #5f6368; margin-bottom: 2px; }
-        .summary-value { font-weight: bold; font-size: 14px; }
-        .summary-input { width: 80px; text-align: right; padding: 4px; font-weight: bold; }
-        .btn-primary {
-            border: none;
-            border-radius: 2px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            background-color: #4285F4;
-            color: white;
-            width: 100%;
-            grid-column: 1 / 3;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="section">
-        <div class="input-grid">
-            <label for="material" class="input-grid-full">Material</label>
-            <select id="material" class="input-grid-full"></select>
-            <div id="error-message" class="input-grid-full"></div>
-            <label for="qty">Qty</label>
-            <div></div>
-            <input id="qty" type="number" min="1" placeholder="1">
-            <div></div>
-            <label for="width">Artwork Width (in)</label>
-            <label for="height">Artwork Height (in)</label>
-            <input id="width" type="number" placeholder="0">
-            <input id="height" type="number" placeholder="0">
-            <div class="checkbox-group input-grid-full">
-                <input type="checkbox" id="complex-shape">
-                <label for="complex-shape">Complex Shape</label>
+<body class="bg-gray-50 font-sans">
+    <div class="flex h-screen">
+        <div id="main-panel" class="flex-grow p-6 overflow-y-auto transition-all duration-300">
+            <!-- Error Message -->
+            <div id="error-message" class="mb-4 text-red-600 text-sm font-semibold bg-red-100 p-3 rounded-md hidden"></div>
+
+            <!-- Inputs Section -->
+            <div class="space-y-6">
+                <div class="space-y-4">
+                    <div>
+                        <label for="description" class="text-xs font-medium text-gray-600">Description</label>
+                        <textarea id="description" class="mt-1 w-full p-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm" rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-600">Material</label>
+                        <select id="material" class="mt-1 h-9 w-full p-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                            <option value="" disabled selected>Select a material</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label for="quantity" class="text-xs font-medium text-gray-600">Qty</label>
+                            <input id="quantity" type="number" value="1" min="1" class="mt-1 h-9 p-2 border border-gray-300 rounded-md w-full" placeholder="1" />
+                        </div>
+                        <div>
+                            <label for="width" class="text-xs font-medium text-gray-600">Width</label>
+                            <input id="width" type="number" min="0" class="mt-1 h-9 p-2 border border-gray-300 rounded-md w-full" placeholder="0" />
+                        </div>
+                        <div>
+                            <label for="height" class="text-xs font-medium text-gray-600">Height</label>
+                            <input id="height" type="number" min="0" class="mt-1 h-9 p-2 border border-gray-300 rounded-md w-full" placeholder="0"/>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-600">Options</label>
+                        <div id="options-container" class="flex flex-wrap gap-2 mt-2">
+                            <button data-option="complexShape" class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors bg-gray-200 hover:bg-gray-300">Complex Shape</button>
+                            <button data-option="doubleSided" class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors bg-gray-200 hover:bg-gray-300">Double Sided</button>
+                            <button data-option="lamination" class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors bg-gray-200 hover:bg-gray-300">Lamination</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="checkbox-group input-grid-full">
-                <input type="checkbox" id="double-sided">
-                <label for="double-sided">Double Sided</label>
+
+            <!-- Results Section -->
+            <div class="mt-6 flex flex-col justify-between rounded-md bg-gray-100 p-3">
+                <div class="grid sm:grid-cols-[1fr_auto_1fr] items-center gap-x-4 gap-y-4 h-full">
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-2 items-center"><div class="text-sm">Total Cost</div><div id="total-cost" class="text-sm text-left font-semibold">$0.00</div></div>
+                        <div class="grid grid-cols-2 items-center">
+                            <div class="text-sm">Margin</div>
+                            <div class="relative w-20">
+                                <input id="margin" type="number" value="60" min="0" step="1" class="w-full h-8 p-2 pr-6 border border-gray-300 rounded-md" placeholder="Value" />
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-500">%</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 items-center"><div class="text-sm">Total Price</div><div id="total-price" class="text-sm text-left font-semibold">$0.00</div></div>
+                        <div class="grid grid-cols-2 items-center"><div class="text-sm">Unit Price</div><div id="unit-price" class="text-sm text-left font-semibold">$0.00</div></div>
+                    </div>
+                    <div class="hidden sm:flex justify-center h-full"><div class="border-l border-gray-300"></div></div>
+                    <div class="flex flex-col justify-center items-center gap-2.5">
+                        <button id="add-to-project-btn" class="w-full h-9 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">Add to Project</button>
+                        <button id="reset-btn" class="w-full h-9 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300">Reset</button>
+                    </div>
+                </div>
             </div>
-            <div class="checkbox-group input-grid-full">
-                <input type="checkbox" id="lamination">
-                <label for="lamination">Lamination</label>
+        </div>
+
+        <!-- Advanced Settings Trigger -->
+        <div id="drawer-trigger" class="flex-shrink-0 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer flex items-center justify-center w-10">
+            <div class="flex flex-col items-center gap-2">
+                <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                <span class="text-xs font-medium text-gray-500" style="writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);">Advanced Settings</span>
             </div>
         </div>
     </div>
 
-    <button id="toggle-labor-btn" class="add-labor-btn">+ Additional Labor</button>
-    <div id="additional-labor-section" class="section hidden">
-        <h3 class="section-header">Additional Labor</h3>
-        <div class="labor-row"><span>Design</span><input type="number" id="design-time" placeholder="0"><select id="design-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
-        <div class="labor-row"><span>Weeding</span><input type="number" id="weeding-time" placeholder="0"><select id="weeding-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
-        <div class="labor-row"><span>Masking</span><input type="number" id="masking-time" placeholder="0"><select id="masking-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
-        <div class="labor-row"><span>Finishing</span><input type="number" id="finishing-time" placeholder="0"><select id="finishing-unit"><option value="minutes">Minutes</option><option value="hours">Hours</option></select></div>
-    </div>
-
-    <div class="summary-container">
-        <div class="summary-item">
-            <span class="summary-label">Total Cost</span>
-            <span id="total-cost" class="summary-value">$0.00</span>
+    <!-- Advanced Settings Drawer -->
+    <div id="drawer" class="fixed top-0 right-0 h-full bg-white shadow-lg transition-transform duration-300 ease-in-out translate-x-full z-10" style="width: 275px;">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h2 class="text-lg font-semibold">Advanced Settings</h2>
+            <button id="drawer-close-btn" class="p-1 rounded-full hover:bg-gray-200 transition-colors">
+                <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
         </div>
-        <div class="summary-item">
-            <span class="summary-label">Margin %</span>
-            <input id="margin" type="number" value="50" class="summary-input">
+        <div id="advanced-fields-container" class="p-4 space-y-4">
+            <!-- Advanced fields will be injected here -->
         </div>
-        <div class="summary-item">
-            <span class="summary-label">Total Price</span>
-            <span id="total-price" class="summary-value">$0.00</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">Total Unit Price</span>
-            <span id="unit-price" class="summary-value">$0.00</span>
-        </div>
-        <button id="add-to-project-btn" class="btn-primary">Add to Project</button>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const materialSelect = document.getElementById('material');
-        
-        // This is the key fix: A direct event listener on the material dropdown
-        materialSelect.addEventListener('change', calculateEstimate);
+        // --- State Management ---
+        const state = {
+            materials: [], materialName: '', description: '', quantity: 1, width: '', height: '',
+            complexShape: false, doubleSided: false, lamination: false,
+            designTime: '', laborDecalsTime: '', laborFinishingTime: '', laborInstallingTime: '',
+            designTimeUnit: 'Minutes', laborDecalsTimeUnit: 'Minutes', laborFinishingTimeUnit: 'Minutes', laborInstallingTimeUnit: 'Minutes',
+            margin: 60, isDrawerOpen: false,
+        };
 
-        google.script.run.withSuccessHandler(materials => {
-            if (materials && materials.length > 0) {
-                 let defaultOption = document.createElement('option');
-                defaultOption.textContent = 'Select a material...';
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                materialSelect.appendChild(defaultOption);
-                materials.forEach(material => {
-                    let option = document.createElement('option');
-                    option.value = material[0];
-                    option.textContent = material[0];
-                    option.dataset.type = material[1];
-                    option.dataset.width = material[2];
-                    option.dataset.height = material[3];
-                    option.dataset.sheetCost = material[4];
-                    option.dataset.linFtCost = material[5];
-                    materialSelect.appendChild(option);
-                });
+        // --- Helper Functions ---
+        const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(isNaN(value) ? 0 : value);
+        const getTimeInHours = (time, unit) => {
+            const numTime = Number(time) || 0;
+            return unit === 'Minutes' ? numTime / 60 : numTime;
+        };
+
+        // --- Calculation Logic ---
+        function calculateEstimate() {
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.textContent = '';
+            errorMessageDiv.classList.add('hidden');
+
+            const selectedMaterial = state.materials.find(m => m.name === state.materialName);
+
+            if (!selectedMaterial || !state.quantity || !state.width || !state.height) {
+                resetCostsUI();
+                return;
             }
-            calculateEstimate();
-        }).withFailureHandler(err => alert("Failed to load materials: " + err.message)).getMaterialInventory();
+            
+            const qty = Number(state.quantity) || 0;
+            const artWidth = Number(state.width) || 0;
+            const artHeight = Number(state.height) || 0;
+            const bleed = 0.25;
+            const spacing = 0.25;
+            const artWidthTotal = artWidth + bleed;
+            const artHeightTotal = artHeight + bleed;
 
-        document.body.addEventListener('input', calculateEstimate);
-        document.body.addEventListener('change', calculateEstimate);
-        document.getElementById('toggle-labor-btn').addEventListener('click', () => document.getElementById('additional-labor-section').classList.toggle('hidden'));
-        document.getElementById('add-to-project-btn').addEventListener('click', sendDataToSheet);
-    });
+            let materialCost = 0;
+            let totalLinearFeet = 0;
 
-    function getInputValue(id) {
-        const el = document.getElementById(id);
-        if (el.value === '') return parseFloat(el.placeholder) || 0;
-        return parseFloat(el.value) || 0;
-    }
-    function isChecked(id) { return document.getElementById(id).checked; }
-    function formatCurrency(value) { return isNaN(value) ? '$0.00' : value.toLocaleString('en-US', { style: 'currency', currency: 'USD' }); }
-    
-    function resetCosts() {
-        document.getElementById('total-cost').textContent = formatCurrency(0);
-        document.getElementById('total-price').textContent = formatCurrency(0);
-        document.getElementById('unit-price').textContent = formatCurrency(0);
-    }
-
-    function calculateEstimate() {
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = '';
-
-        const qty = getInputValue('qty');
-        const artWidth = getInputValue('width');
-        const artHeight = getInputValue('height');
-        const isDoubleSided = isChecked('double-sided');
-        const isComplex = isChecked('complex-shape');
-        const bleed = 0.25;
-        const spacing = 0.25;
-        const artWidthWithBleed = artWidth + bleed;
-        const artHeightWithBleed = artHeight + bleed;
-
-        let materialCost = 0;
-        const selectedMaterial = document.getElementById('material').selectedOptions[0];
-        
-        if (selectedMaterial && !selectedMaterial.disabled) {
-            const matType = selectedMaterial.dataset.type;
-            if (matType === 'Roll') {
-                const rollWidth = parseFloat(selectedMaterial.dataset.width);
-                if (artWidthWithBleed > rollWidth && artHeightWithBleed > rollWidth) {
-                    errorDiv.textContent = 'Artwork is wider than the selected roll.';
-                    resetCosts();
+            if (selectedMaterial.type === 'ROLL') {
+                const rollWidth = selectedMaterial.width;
+                if (artWidthTotal > rollWidth && artHeightTotal > rollWidth) {
+                    errorMessageDiv.textContent = 'Artwork is wider than the selected roll.';
+                    errorMessageDiv.classList.remove('hidden');
+                    resetCostsUI();
                     return;
                 }
-            } else if (matType === 'Sheet') {
-                const sheetWidth = parseFloat(selectedMaterial.dataset.width);
-                const sheetHeight = parseFloat(selectedMaterial.dataset.height);
-                const artFitsPortrait = (artWidthWithBleed <= sheetWidth && artHeightWithBleed <= sheetHeight);
-                const artFitsLandscape = (artWidthWithBleed <= sheetHeight && artHeightWithBleed <= sheetWidth);
+                const linFtCost = selectedMaterial.costLinFt;
+                const colsPortrait = Math.floor((rollWidth + spacing) / (artWidthTotal + spacing));
+                const colsLandscape = Math.floor((rollWidth + spacing) / (artHeightTotal + spacing));
+                let numColumns = Math.max(colsPortrait, colsLandscape, 1);
+                let layoutRow = artHeightTotal;
+                if (colsLandscape > colsPortrait) layoutRow = artWidthTotal;
+                const numRows = Math.ceil(qty / numColumns);
+                const totalLinearInches = (numRows * layoutRow) + ((numRows - 1) * spacing);
+                totalLinearFeet = totalLinearInches / 12;
+                materialCost = (totalLinearFeet + 2.5) * linFtCost;
+            } else if (selectedMaterial.type === 'SHEET') {
+                const sheetWidth = selectedMaterial.width;
+                const sheetHeight = selectedMaterial.height;
+                const artFitsPortrait = (artWidthTotal <= sheetWidth && artHeightTotal <= sheetHeight);
+                const artFitsLandscape = (artWidthTotal <= sheetHeight && artHeightTotal <= sheetWidth);
                 if (!artFitsPortrait && !artFitsLandscape) {
-                    errorDiv.textContent = 'Artwork is larger than the selected sheet.';
-                    resetCosts();
+                    errorMessageDiv.textContent = 'Artwork is larger than the selected sheet.';
+                    errorMessageDiv.classList.remove('hidden');
+                    resetCostsUI();
                     return;
                 }
-            }
-        }
-
-        const singlePieceSqFt = (artWidthWithBleed * artHeightWithBleed) / 144;
-        
-        let totalArtworkSqFt = singlePieceSqFt * qty;
-        if (isDoubleSided) totalArtworkSqFt *= 1.45;
-        const totalArtworkPerimeter = (artWidthWithBleed * artHeightWithBleed) * 2 * qty;
-
-        const printTimeHours = (totalArtworkSqFt / 0.83) / 60;
-        let cutTimeHours = (totalArtworkPerimeter / 120) / 60;
-        if (isComplex) cutTimeHours *= 1.5;
-        const ripTimeHours = (totalArtworkSqFt / 20.52) / 60;
-        const printComputeTimeHours = (totalArtworkSqFt / 6.2) / 60;
-        
-        let designTimeInHours = getInputValue('design-time');
-        if (document.getElementById('design-unit').value === 'minutes') designTimeInHours /= 60;
-        
-        let weedingTime = getInputValue('weeding-time');
-        if (document.getElementById('weeding-unit').value === 'minutes') weedingTime /= 60;
-        let maskingTime = getInputValue('masking-time');
-        if (document.getElementById('masking-unit').value === 'minutes') maskingTime /= 60;
-        let finishingTime = getInputValue('finishing-time');
-        if (document.getElementById('finishing-unit').value === 'minutes') finishingTime /= 60;
-        
-        const manualLaborTimeHours = weedingTime + maskingTime + finishingTime;
-        
-        const totalProjectRunTimeHours = printTimeHours + cutTimeHours + ripTimeHours + printComputeTimeHours;
-        
-        if (selectedMaterial && !selectedMaterial.disabled) {
-            const matType = selectedMaterial.dataset.type;
-            if (matType === 'Roll') {
-                const rollWidth = parseFloat(selectedMaterial.dataset.width);
-                const linFtCost = parseFloat(selectedMaterial.dataset.linFtCost);
-                if (rollWidth > 0 && artWidthWithBleed > 0 && artHeightWithBleed > 0) {
-                    const colsPortrait = Math.floor((rollWidth + spacing) / (artWidthWithBleed + spacing));
-                    const colsLandscape = Math.floor((rollWidth + spacing) / (artHeightWithBleed + spacing));
-                    let numColumns = Math.max(colsPortrait, colsLandscape, 1);
-                    let rowHeight = artHeightWithBleed;
-                    if (colsLandscape > colsPortrait) rowHeight = artWidthWithBleed;
-                    const numRows = Math.ceil(qty / numColumns);
-                    const totalLinearInches = (numRows * rowHeight) + ((numRows - 1) * spacing);
-                    const totalLinearFeet = totalLinearInches / 12;
-                    materialCost = totalLinearFeet * linFtCost;
-                }
-            } else if (matType === 'Sheet') {
-                const sheetWidth = parseFloat(selectedMaterial.dataset.width);
-                const sheetHeight = parseFloat(selectedMaterial.dataset.height);
-                const sheetCost = parseFloat(selectedMaterial.dataset.sheetCost);
-                const artFitsPortrait = (artWidthWithBleed <= sheetWidth && artHeightWithBleed <= sheetHeight);
-                const artFitsLandscape = (artWidthWithBleed <= sheetHeight && artHeightWithBleed <= sheetWidth);
-                const perSheet1 = artFitsPortrait ? Math.floor((sheetWidth + spacing) / (artWidthWithBleed + spacing)) * Math.floor((sheetHeight + spacing) / (artHeightWithBleed + spacing)) : 0;
-                const perSheet2 = artFitsLandscape ? Math.floor((sheetWidth + spacing) / (artHeightWithBleed + spacing)) * Math.floor((sheetHeight + spacing) / (artWidthWithBleed + spacing)) : 0;
+                const sheetCost = selectedMaterial.costSheet;
+                const perSheet1 = artFitsPortrait ? Math.floor((sheetWidth + spacing) / (artWidthTotal + spacing)) * Math.floor((sheetHeight + spacing) / (artHeightTotal + spacing)) : 0;
+                const perSheet2 = artFitsLandscape ? Math.floor((sheetWidth + spacing) / (artHeightTotal + spacing)) * Math.floor((sheetHeight + spacing) / (artWidthTotal + spacing)) : 0;
                 const piecesPerSheet = Math.max(perSheet1, perSheet2, 1);
                 const totalSheets = Math.ceil(qty / piecesPerSheet);
                 let calculatedMaterialCost = totalSheets * sheetCost;
                 const halfSheetCost = sheetCost * 0.5;
                 materialCost = Math.max(calculatedMaterialCost, halfSheetCost);
             }
-        }
-        const inkCost = totalArtworkSqFt * 0.165;
-        const cuttingCost = cutTimeHours * 25.00;
-        const setupCost = singlePieceSqFt * 0.15 * 60.00;
-        const equipmentCost = totalProjectRunTimeHours * 4.95;
-        const operatorCost = totalProjectRunTimeHours * 28.00;
-        
-        const designCost = designTimeInHours * 60.00;
-        const laborCost = manualLaborTimeHours * 28.00;
 
-        const totalCost = materialCost + inkCost + cuttingCost + setupCost + equipmentCost + operatorCost + designCost + laborCost;
-        const margin = getInputValue('margin') / 100;
-        let totalPrice = totalCost;
-        if (margin < 1 && margin >= 0) totalPrice = totalCost / (1 - margin);
-        const unitPrice = (qty > 0) ? totalPrice / qty : 0;
-        
-        document.getElementById('total-cost').textContent = formatCurrency(totalCost);
-        document.getElementById('total-price').textContent = formatCurrency(totalPrice);
-        document.getElementById('unit-price').textContent = formatCurrency(unitPrice);
-    }
-    function sendDataToSheet() {
-        const qty = getInputValue('qty');
-        const totalPrice = parseFloat(document.getElementById('total-price').textContent.replace(/[^0-9.-]+/g,""));
-        const unitPrice = (qty > 0) ? totalPrice / qty : 0;
-        if (isNaN(qty) || isNaN(unitPrice) || isNaN(totalPrice) || qty === 0) {
-            alert("Please enter a valid quantity before adding to the project.");
-            return;
+            const singlePieceSqFt = (artWidthTotal * artHeightTotal) / 144;
+            let totalArtworkSqFt = singlePieceSqFt * qty;
+            if (state.doubleSided) totalArtworkSqFt *= 2;
+            const totalArtworkPerimeter = (artWidth * 2 + artHeight * 2) * qty;
+            const printTimeHours = (totalArtworkSqFt / 0.83) / 60;
+            let cutTimeHours = (totalArtworkPerimeter / 120) / 60;
+            if (state.complexShape) cutTimeHours *= 1.5;
+            const ripTimeHours = (totalArtworkSqFt / 20.52) / 60;
+            const printComputeTimeHours = (totalArtworkSqFt / 6.2) / 60;
+            const designTimeInHours = getTimeInHours(state.designTime, state.designTimeUnit);
+            const laborDecalsTimeInHours = getTimeInHours(state.laborDecalsTime, state.laborDecalsTimeUnit);
+            const laborFinishingTimeInHours = getTimeInHours(state.laborFinishingTime, state.laborFinishingTimeUnit);
+            const laborInstallingTimeInHours = getTimeInHours(state.laborInstallingTime, state.laborInstallingTimeUnit);
+            const manualOperatorTimeInHours = laborDecalsTimeInHours + laborFinishingTimeInHours + laborInstallingTimeInHours;
+            const totalProjectRunTimeHours = printTimeHours + cutTimeHours + ripTimeHours + printComputeTimeHours;
+            const inkCost = totalArtworkSqFt * 0.165;
+            const cuttingCost = cutTimeHours * 25.00;
+            const baseDesignCost = (totalArtworkSqFt / 25) * 0.0625 * 60.00;
+            const manualDesignCost = designTimeInHours * 60.00;
+            const designCost = baseDesignCost + manualDesignCost;
+            let laminationCost = 0;
+            if (state.lamination) {
+                if (selectedMaterial.type === 'ROLL') laminationCost = totalLinearFeet * 1.02;
+                else laminationCost = totalArtworkSqFt * 0.2267;
+            }
+            const equipmentCost = totalProjectRunTimeHours * 4.95;
+            const operatorCost = (totalProjectRunTimeHours + manualOperatorTimeInHours) * 28.00;
+            const calculatedTotalCosts = materialCost + inkCost + cuttingCost + designCost + equipmentCost + operatorCost + laminationCost;
+            const numMargin = Number(state.margin) || 0;
+            let calculatedTotalPrice = calculatedTotalCosts;
+            if (numMargin < 100 && numMargin >= 0) calculatedTotalPrice = calculatedTotalCosts / (1 - (numMargin / 100));
+            const calculatedUnitPrice = qty > 0 ? calculatedTotalPrice / qty : 0;
+
+            updateCostsUI(calculatedTotalCosts, calculatedTotalPrice, calculatedUnitPrice);
         }
-        const button = document.getElementById('add-to-project-btn');
-        button.textContent = "Adding...";
-        button.disabled = true;
-        google.script.run.withSuccessHandler(() => {
-            button.textContent = "Add to Project";
-            button.disabled = false;
-        }).withFailureHandler(err => {
-            alert("Error: " + err.message);
-            button.textContent = "Add to Project";
-            button.disabled = false;
-        }).addEstimateToProject(qty, unitPrice, totalPrice);
-    }
-</script>
+
+        // --- UI Update Functions ---
+        function updateCostsUI(total, price, unit) {
+            document.getElementById('total-cost').textContent = formatCurrency(total);
+            document.getElementById('total-price').textContent = formatCurrency(price);
+            document.getElementById('unit-price').textContent = formatCurrency(unit);
+        }
+
+        function resetCostsUI() {
+            updateCostsUI(0, 0, 0);
+        }
+
+        function resetForm() {
+            Object.assign(state, {
+                description: '', materialName: '', quantity: 1, width: '', height: '',
+                complexShape: false, doubleSided: false, lamination: false,
+                designTime: '', laborDecalsTime: '', laborFinishingTime: '', laborInstallingTime: '',
+                designTimeUnit: 'Minutes', laborDecalsTimeUnit: 'Minutes', laborFinishingTimeUnit: 'Minutes', laborInstallingTimeUnit: 'Minutes',
+                margin: 60, isDrawerOpen: false,
+            });
+            document.getElementById('description').value = '';
+            document.getElementById('material').value = '';
+            document.getElementById('quantity').value = '1';
+            document.getElementById('width').value = '';
+            document.getElementById('height').value = '';
+            document.getElementById('margin').value = '60';
+            document.querySelectorAll('#options-container button').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            });
+            document.querySelectorAll('#advanced-fields-container input').forEach(input => input.value = '');
+            calculateEstimate();
+        }
+
+        function sendDataToProject() {
+            const description = state.description || 'Description Details';
+            const width = Number(state.width) || 0;
+            const height = Number(state.height) || 0;
+            const formattedDescription = `${description} - (${width}" x ${height}")`;
+
+            const qty = Number(state.quantity) || 0;
+            const priceText = document.getElementById('total-price').textContent;
+            const totalPrice = parseFloat(priceText.replace(/[^0-9.-]+/g,""));
+            const unitPrice = qty > 0 ? totalPrice / qty : 0;
+            if (isNaN(qty) || isNaN(unitPrice) || isNaN(totalPrice) || qty === 0) {
+                alert("Please enter a valid quantity before adding to the project.");
+                return;
+            }
+            google.script.run.addEstimateToProject(formattedDescription, qty, unitPrice, totalPrice);
+        }
+        
+        // --- DOM Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            google.script.run.withSuccessHandler(materials => {
+                state.materials = materials.map(m => ({
+                    name: m[0], type: m[1], width: parseFloat(m[2]), height: parseFloat(m[3]), costSheet: parseFloat(m[4]), costLinFt: parseFloat(m[5])
+                }));
+                const materialSelect = document.getElementById('material');
+                state.materials.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m.name;
+                    option.textContent = m.name;
+                    materialSelect.appendChild(option);
+                });
+            }).getMaterialInventory();
+
+            // Setup all event listeners
+            document.getElementById('description').addEventListener('input', (e) => { state.description = e.target.value; });
+            document.getElementById('material').addEventListener('change', (e) => { state.materialName = e.target.value; calculateEstimate(); });
+            ['quantity', 'width', 'height', 'margin'].forEach(id => {
+                document.getElementById(id).addEventListener('input', (e) => { state[id] = e.target.value; calculateEstimate(); });
+            });
+            document.querySelectorAll('#options-container button').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const option = e.currentTarget.dataset.option;
+                    state[option] = !state[option];
+                    e.currentTarget.classList.toggle('bg-blue-600');
+                    e.currentTarget.classList.toggle('text-white');
+                    e.currentTarget.classList.toggle('bg-gray-200');
+                    e.currentTarget.classList.toggle('hover:bg-gray-300');
+                    calculateEstimate();
+                });
+            });
+            document.getElementById('reset-btn').addEventListener('click', resetForm);
+            document.getElementById('add-to-project-btn').addEventListener('click', sendDataToProject);
+            
+            // Advanced Drawer
+            const drawer = document.getElementById('drawer');
+            const mainPanel = document.getElementById('main-panel');
+            const drawerTrigger = document.getElementById('drawer-trigger');
+            const drawerCloseBtn = document.getElementById('drawer-close-btn');
+
+            const toggleDrawer = () => {
+                state.isDrawerOpen = !state.isDrawerOpen;
+                drawer.classList.toggle('translate-x-full');
+                mainPanel.parentElement.classList.toggle('max-w-5xl');
+                mainPanel.parentElement.classList.toggle('max-w-2xl');
+            };
+            drawerTrigger.addEventListener('click', toggleDrawer);
+            drawerCloseBtn.addEventListener('click', toggleDrawer);
+
+            // Render advanced fields
+            const advancedContainer = document.getElementById('advanced-fields-container');
+            const advancedFields = [
+                { id: 'designTime', label: 'Labor Design', unitId: 'designTimeUnit' },
+                { id: 'laborDecalsTime', label: 'Labor Decals', unitId: 'laborDecalsTimeUnit' },
+                { id: 'laborFinishingTime', label: 'Labor Finishing', unitId: 'laborFinishingTimeUnit' },
+                { id: 'laborInstallingTime', label: 'Labor Installing', unitId: 'laborInstallingTimeUnit' },
+            ];
+            advancedFields.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'grid grid-cols-[100px_1fr] items-center gap-2';
+                div.innerHTML = `
+                    <label for="${field.id}" class="text-sm">${field.label}</label>
+                    <div class="flex gap-1">
+                        <input id="${field.id}" type="number" min="0" step="0.25" class="h-9 w-full p-2 border rounded-md" placeholder="0">
+                        <select id="${field.unitId}" class="h-9 border rounded-md p-2 text-sm">
+                            <option value="Minutes">Minutes</option>
+                            <option value="Hours">Hours</option>
+                        </select>
+                    </div>
+                `;
+                advancedContainer.appendChild(div);
+                document.getElementById(field.id).addEventListener('input', (e) => { state[field.id] = e.target.value; calculateEstimate(); });
+                document.getElementById(field.unitId).addEventListener('change', (e) => { state[field.unitId] = e.target.value; calculateEstimate(); });
+            });
+        });
+    </script>
 </body>
 </html>
