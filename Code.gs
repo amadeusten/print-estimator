@@ -23,7 +23,6 @@ function showEstimatorSidebar() {
 
 /**
  * Fetches data from the 'Print Material Inventory' sheet.
- * Returns the necessary columns for the new calculations.
  */
 function getMaterialInventory() {
   try {
@@ -31,7 +30,6 @@ function getMaterialInventory() {
     if (!sheet) {
       throw new Error("Sheet 'Print Material Inventory' not found. Please create it.");
     }
-    // Fetches A2:F to get all necessary data: Name, Type, Width, Height, Cost/Sheet, Cost/LinFt
     return sheet.getRange("A2:F" + sheet.getLastRow()).getValues().filter(row => row[0] !== "");
   } catch (e) {
     Logger.log(e);
@@ -41,11 +39,12 @@ function getMaterialInventory() {
 
 /**
  * Adds the final estimate values to the currently active row.
+ * @param {string} description The formatted description string.
  * @param {number} qty The quantity.
  * @param {number} unitPrice The calculated price per unit.
  * @param {number} totalPrice The calculated total price.
  */
-function addEstimateToProject(qty, unitPrice, totalPrice) {
+function addEstimateToProject(description, qty, unitPrice, totalPrice) {
   const activeRange = SpreadsheetApp.getActiveRange();
   if (!activeRange) {
     throw new Error("No active cell selected. Please select a cell to add the project to.");
@@ -53,7 +52,8 @@ function addEstimateToProject(qty, unitPrice, totalPrice) {
   const row = activeRange.getRow();
   const sheet = activeRange.getSheet();
   
-  // Set values in columns B, C, and D of the active row.
+  // Set values in columns A, B, C, and D of the active row.
+  sheet.getRange(row, 1).setValue(description);
   sheet.getRange(row, 2).setValue(qty);
   sheet.getRange(row, 3).setValue(unitPrice).setNumberFormat("$#,##0.00");
   sheet.getRange(row, 4).setValue(totalPrice).setNumberFormat("$#,##0.00");
